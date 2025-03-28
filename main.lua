@@ -87,26 +87,20 @@ local function UpdateESP()
             end
         end
 
-        -- Berry ESP (Fix: Check for PrimaryPart)
+        -- Berry ESP
         if ESPEnabled.Berry then
             for _, berry in pairs(game.Workspace:GetChildren()) do
-                if berry:IsA("Model") and berry.Name:lower():find("berry") then
-                    local primary = berry:FindFirstChild("PrimaryPart")
-                    if primary then
-                        CreateESP(primary, Color3.fromRGB(0, 255, 0), "💰 Berry")
-                    end
+                if berry:IsA("Model") and berry:FindFirstChild("PrimaryPart") and berry.Name:lower():find("berry") then
+                    CreateESP(berry.PrimaryPart, Color3.fromRGB(0, 255, 0), "💰 Berry")
                 end
             end
         end
 
-        -- Flower ESP (Fix: Check for PrimaryPart)
+        -- Flower ESP
         if ESPEnabled.Flower then
             for _, flower in pairs(game.Workspace:GetChildren()) do
-                if flower:IsA("Model") and flower.Name:lower():find("flower") then
-                    local primary = flower:FindFirstChild("PrimaryPart")
-                    if primary then
-                        CreateESP(primary, Color3.fromRGB(255, 0, 255), "🌸 Flower")
-                    end
+                if flower:IsA("Model") and flower:FindFirstChild("PrimaryPart") and flower.Name:lower():find("flower") then
+                    CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 0, 255), "🌸 Flower")
                 end
             end
         end
@@ -161,11 +155,44 @@ local function ToggleESP(espType, enabled)
     end
 end
 
+-- Function to bring Devil Fruits
+local BringDevilFruitsEnabled = false
+
+local function BringDevilFruits()
+    while BringDevilFruitsEnabled do
+        local player = game.Players.LocalPlayer
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local rootPart = character.HumanoidRootPart
+
+            for _, fruit in pairs(game.Workspace:GetChildren()) do
+                if fruit:IsA("Model") and fruit:FindFirstChild("Handle") and fruit.Name:lower():find("fruit") then
+                    fruit.Handle.CFrame = rootPart.CFrame + Vector3.new(0, 3, 0)
+                end
+            end
+        end
+        task.wait(1)
+    end
+end
+
 -- ESP Toggles
 ESPTab:CreateToggle({ Name = "Player ESP", CurrentValue = false, Flag = "PlayerESP", Callback = function(Value) ToggleESP("Player", Value) end })
 ESPTab:CreateToggle({ Name = "Devil Fruit ESP", CurrentValue = false, Flag = "DevilFruitESP", Callback = function(Value) ToggleESP("DevilFruit", Value) end })
 ESPTab:CreateToggle({ Name = "Berry ESP", CurrentValue = false, Flag = "BerryESP", Callback = function(Value) ToggleESP("Berry", Value) end })
 ESPTab:CreateToggle({ Name = "Flower ESP", CurrentValue = false, Flag = "FlowerESP", Callback = function(Value) ToggleESP("Flower", Value) end })
 ESPTab:CreateToggle({ Name = "Island ESP", CurrentValue = false, Flag = "IslandESP", Callback = function(Value) ToggleESP("Island", Value) end })
+
+-- Bring Devil Fruits Toggle
+MiscTab:CreateToggle({
+    Name = "Bring Devil Fruits",
+    CurrentValue = false,
+    Flag = "BringDevilFruits",
+    Callback = function(Value)
+        BringDevilFruitsEnabled = Value
+        if Value then
+            BringDevilFruits()
+        end
+    end
+})
 
 Rayfield:LoadConfiguration()
