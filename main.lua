@@ -12,16 +12,6 @@ local Window = Rayfield:CreateWindow({
     KeySystem = false
 })
 
-local createdByLabel = Instance.new("TextLabel")
-createdByLabel.Size = UDim2.new(0, 200, 0, 30)  -- Adjust size as needed
-createdByLabel.Position = UDim2.new(1, -210, 1, -50)  -- Positioned at the bottom-right
-createdByLabel.Text = "by artist.ricky (!..Ricky)"
-createdByLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-createdByLabel.TextSize = 14
-createdByLabel.BackgroundTransparency = 1
-createdByLabel.Font = Enum.Font.SourceSansBold
-createdByLabel.Parent = Window
-
 local ESPTab = Window:CreateTab("ESP", 4483362458)
 local MiscTab = Window:CreateTab("Misc", 4483362458)
 local SettingsTab = Window:CreateTab("Settings", 4483362458)
