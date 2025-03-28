@@ -30,18 +30,19 @@ local ESPLoopRunning = false -- Prevent multiple loops
 
 -- First Sea Island Positions
 local FirstSeaIslands = {
-    ["Starter Island"] = Vector3.new(-500, 50, 200),
-    ["Marine Fortress"] = Vector3.new(-1600, 50, 800),
-    ["Jungle"] = Vector3.new(-1100, 30, -500),
-    ["Pirate Village"] = Vector3.new(-1100, 50, 1200),
-    ["Desert"] = Vector3.new(400, 30, -1600),
-    ["Middle Town"] = Vector3.new(0, 50, 0),
-    ["Frozen Village"] = Vector3.new(1100, 50, -1200),
-    ["Underwater City"] = Vector3.new(2200, -200, -2000),
-    ["Sky Islands"] = Vector3.new(0, 500, 0),
-    ["Colosseum"] = Vector3.new(-1600, 50, -1000),
-    ["Magma Village"] = Vector3.new(-900, 50, 2000),
-    ["Fountain City"] = Vector3.new(2300, 50, 800)
+    ["Starter Island (Pirates)"] = Vector3.new(-1149, 5, 3826),
+    ["Starter Island (Marines)"] = Vector3.new(-1123, 5, 3855),
+    ["Jungle"] = Vector3.new(-1339, 11, 354),
+    ["Pirate Village"] = Vector3.new(-1140, 5, 1325),
+    ["Desert"] = Vector3.new(978, 13, 4310),
+    ["Frozen Village"] = Vector3.new(1214, 7, -1210),
+    ["Marine Fortress"] = Vector3.new(-4550, 210, 4190),
+    ["Skylands"] = Vector3.new(-4850, 900, -250),
+    ["Prison"] = Vector3.new(4850, 5, 790),
+    ["Colosseum"] = Vector3.new(-1425, 7, -3015),
+    ["Magma Village"] = Vector3.new(-5230, 6, 1300),
+    ["Underwater City"] = Vector3.new(61164, -1000, 1819),
+    ["Fountain City"] = Vector3.new(5500, 5, 4500)
 }
 
 local function CreateESP(object, color, labelText)
