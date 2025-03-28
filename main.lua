@@ -12,6 +12,7 @@ local Window = Rayfield:CreateWindow({
     KeySystem = false
 })
 
+local FarmTab = Window:CreateTab("Farm", 4483362458)
 local ESPTab = Window:CreateTab("ESP", 4483362458)
 local MiscTab = Window:CreateTab("Misc", 4483362458)
 local SettingsTab = Window:CreateTab("Settings", 4483362458)
@@ -27,6 +28,70 @@ local ESPEnabled = {
 local ESPObjects = {}
 local IslandMarkers = {}
 local ESPLoopRunning = false -- Prevent multiple loops
+
+local AutoFarmEnabled = false
+
+-- Function to get the nearest enemy
+local function GetNearestEnemy()
+    local nearestEnemy = nil
+    local shortestDistance = math.huge
+    local player = game.Players.LocalPlayer
+
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local rootPart = player.Character.HumanoidRootPart
+
+        for _, npc in pairs(game.Workspace.Enemies:GetChildren()) do
+            if npc:IsA("Model") and npc:FindFirstChild("HumanoidRootPart") and npc:FindFirstChild("Humanoid") and npc.Humanoid.Health > 0 then
+                local distance = (rootPart.Position - npc.HumanoidRootPart.Position).Magnitude
+                if distance < shortestDistance then
+                    shortestDistance = distance
+                    nearestEnemy = npc
+                end
+            end
+        end
+    end
+
+    return nearestEnemy
+end
+
+-- Function to move to a position
+local function MoveToPosition(position)
+    local player = game.Players.LocalPlayer
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(position + Vector3.new(0, 5, 0)) -- Slightly above to avoid getting stuck
+    end
+end
+
+-- Function to auto farm enemies
+local function AutoFarmLoop()
+    while AutoFarmEnabled do
+        local enemy = GetNearestEnemy()
+
+        if enemy then
+            MoveToPosition(enemy.HumanoidRootPart.Position)
+            task.wait(0.5) -- Wait before attacking
+
+            -- Attack enemy
+            game:GetService("VirtualUser"):CaptureController()
+            game:GetService("VirtualUser"):ClickButton1(Vector2.new()) -- Simulates left-click attack
+        end
+
+        task.wait(1) -- Adjust for better performance
+    end
+end
+
+-- Toggle for Auto Farm
+FarmTab:CreateToggle({
+    Name = "Auto Farm",
+    CurrentValue = false,
+    Flag = "AutoFarmToggle",
+    Callback = function(Value)
+        AutoFarmEnabled = Value
+        if Value then
+            AutoFarmLoop()
+        end
+    end
+})
 
 -- First Sea Island Positions
 local FirstSeaIslands = {
