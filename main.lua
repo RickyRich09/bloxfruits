@@ -42,7 +42,8 @@ local FirstSeaIslands = {
     ["Colosseum"] = Vector3.new(-1425, 7, -3015),
     ["Magma Village"] = Vector3.new(-5230, 6, 1300),
     ["Underwater City"] = Vector3.new(61164, -1000, 1819),
-    ["Fountain City"] = Vector3.new(5500, 5, 4500)
+    ["Fountain City"] = Vector3.new(5500, 5, 4500),
+    ["Middle Town"] = Vector3.new(1200, 10, 3800)
 }
 
 local function CreateESP(object, color, labelText)
