@@ -65,70 +65,93 @@ local function CreateESP(object, color, labelText)
     ESPObjects[object] = billboard
 end
 
+-- Function to update ESP dynamically
 local function UpdateESP()
-    if ESPLoopRunning then return end
-    ESPLoopRunning = true
-
-    while next(ESPEnabled) do
+    while ESPEnabled.Player or ESPEnabled.DevilFruit or ESPEnabled.Berry or ESPEnabled.Flower or ESPEnabled.Island do
         task.wait(2)
 
-        -- Clear invalid ESP objects
+        -- Clear old ESP markers
         for obj, esp in pairs(ESPObjects) do
-            if not obj or not obj.Parent then
+            if obj.Parent == nil then
                 esp:Destroy()
                 ESPObjects[obj] = nil
             end
         end
 
-        -- Player ESP
+        local playerRoot = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        
+        -- Player ESP (Now updates health correctly)
         if ESPEnabled.Player then
             for _, player in pairs(game.Players:GetPlayers()) do
-                if player ~= game.Players.LocalPlayer and player.Character then
-                    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
+                if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") then
                     local humanoid = player.Character:FindFirstChild("Humanoid")
-                    if hrp and humanoid then
-                        local distance = math.floor((game.Players.LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude)
-                        CreateESP(hrp, Color3.fromRGB(255, 255, 255), string.format("%s\nHP: %d/%d\nDist: %d", player.Name, humanoid.Health, humanoid.MaxHealth, distance))
+                    local distance = math.floor((playerRoot.Position - player.Character.HumanoidRootPart.Position).Magnitude)
+
+                    if not ESPObjects[player.Character.HumanoidRootPart] then
+                        CreateESP(player.Character.HumanoidRootPart, Color3.fromRGB(255, 255, 255), "")
                     end
+
+                    ESPObjects[player.Character.HumanoidRootPart].TextLabel.Text = string.format("%s\nHP: %d/%d\nDist: %d", player.Name, humanoid.Health, humanoid.MaxHealth, distance)
                 end
             end
         end
 
-        -- Devil Fruit ESP
+        -- Devil Fruit ESP (Now shows name & distance)
         if ESPEnabled.DevilFruit then
             for _, fruit in pairs(game.Workspace:GetChildren()) do
                 if fruit:IsA("Model") and fruit:FindFirstChild("Handle") and fruit.Name:lower():find("fruit") then
-                    CreateESP(fruit.Handle, Color3.fromRGB(255, 165, 0), "🍏 Devil Fruit")
+                    local distance = math.floor((playerRoot.Position - fruit.Handle.Position).Magnitude)
+                    local fruitName = fruit.Name
+                    CreateESP(fruit.Handle, Color3.fromRGB(255, 165, 0), string.format("🍏 %s\nDist: %d", fruitName, distance))
                 end
             end
         end
 
-        -- Berry ESP
+        -- Berry ESP (Now shows name & distance)
         if ESPEnabled.Berry then
             for _, berry in pairs(game.Workspace:GetChildren()) do
-                if berry:IsA("Model") and berry:FindFirstChild("PrimaryPart") and berry.Name:lower():find("berry") then
-                    CreateESP(berry.PrimaryPart, Color3.fromRGB(0, 255, 0), "💰 Berry")
+                if berry:IsA("Model") and berry.PrimaryPart then
+                    local distance = math.floor((playerRoot.Position - berry.PrimaryPart.Position).Magnitude)
+                    local berryName = berry.Name
+                    CreateESP(berry.PrimaryPart, Color3.fromRGB(0, 255, 0), string.format("💰 %s\nDist: %d", berryName, distance))
                 end
             end
         end
 
-        -- Flower ESP
+        -- Flower ESP (Now shows name & distance)
         if ESPEnabled.Flower then
             for _, flower in pairs(game.Workspace:GetChildren()) do
-                if flower:IsA("Model") and flower:FindFirstChild("PrimaryPart") and flower.Name:lower():find("flower") then
-                    CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 0, 255), "🌸 Flower")
+                if flower:IsA("Model") and flower.PrimaryPart then
+                    local distance = math.floor((playerRoot.Position - flower.PrimaryPart.Position).Magnitude)
+                    local flowerName = flower.Name
+                    CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 0, 255), string.format("🌸 %s\nDist: %d", flowerName, distance))
                 end
             end
         end
 
-        -- Island ESP
+        -- Island ESP (Now shows name & distance)
         if ESPEnabled.Island then
             for _, marker in pairs(IslandMarkers) do
                 marker:Destroy()
             end
             IslandMarkers = {}
 
-            for island, pos in pairs(FirstSeaIslands) do
+            local islandPositions = {
+                ["Starter Island"] = Vector3.new(-500, 50, 200),
+                ["Marine Fortress"] = Vector3.new(-1600, 50, 800),
+                ["Jungle"] = Vector3.new(-1100, 30, -500),
+                ["Sky Island"] = Vector3.new(0, 500, 0),
+                ["Pirate Village"] = Vector3.new(-1000, 30, 1200),
+                ["Desert Island"] = Vector3.new(1500, 30, -500),
+                ["Frozen Village"] = Vector3.new(1200, 30, 800),
+                ["Underwater City"] = Vector3.new(2000, -200, 1500),
+                ["Magma Village"] = Vector3.new(-1500, 30, -1300),
+                ["Colosseum"] = Vector3.new(200, 30, -3000)
+            }
+
+            for island, pos in pairs(islandPositions) do
+                local distance = math.floor((playerRoot.Position - pos).Magnitude)
+
                 local marker = Instance.new("Part")
                 marker.Size = Vector3.new(5, 5, 5)
                 marker.Position = pos
@@ -137,12 +160,10 @@ local function UpdateESP()
                 marker.Parent = game.Workspace
                 
                 table.insert(IslandMarkers, marker)
-                CreateESP(marker, Color3.fromRGB(255, 255, 255), "🏝 " .. island)
+                CreateESP(marker, Color3.fromRGB(0, 0, 255), string.format("🏝 %s\nDist: %d", island, distance))
             end
         end
     end
-
-    ESPLoopRunning = false
 end
 
 local function ToggleESP(espType, enabled)
