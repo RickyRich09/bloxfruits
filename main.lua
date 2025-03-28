@@ -147,7 +147,7 @@ local function UpdateESP()
                 marker.Parent = game.Workspace
                 
                 table.insert(IslandMarkers, marker)
-                CreateESP(marker, Color3.fromRGB(0, 0, 255), string.format("🏝 %s\nDist: %d", island, distance))
+                CreateESP(marker, Color3.fromRGB(255, 255, 255), string.format("🏝 %s\nDist: %d", island, distance))
             end
         end
     end
