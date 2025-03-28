@@ -2,11 +2,11 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
     Name = "Blox Fruits Script",
-    LoadingTitle = "Blox Fruits GUI",
+    LoadingTitle = "Blox Fruits Script",
     LoadingSubtitle = "by !..Ricky",
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "BloxFruitsGUI",
+        FolderName = "BloxFruitsScript",
         FileName = "Config"
     },
     KeySystem = false
@@ -27,6 +27,22 @@ local ESPEnabled = {
 local ESPObjects = {}
 local IslandMarkers = {}
 local ESPLoopRunning = false -- Prevent multiple loops
+
+-- First Sea Island Positions
+local FirstSeaIslands = {
+    ["Starter Island"] = Vector3.new(-500, 50, 200),
+    ["Marine Fortress"] = Vector3.new(-1600, 50, 800),
+    ["Jungle"] = Vector3.new(-1100, 30, -500),
+    ["Pirate Village"] = Vector3.new(-1100, 50, 1200),
+    ["Desert"] = Vector3.new(400, 30, -1600),
+    ["Middle Town"] = Vector3.new(0, 50, 0),
+    ["Frozen Village"] = Vector3.new(1100, 50, -1200),
+    ["Underwater City"] = Vector3.new(2200, -200, -2000),
+    ["Sky Islands"] = Vector3.new(0, 500, 0),
+    ["Colosseum"] = Vector3.new(-1600, 50, -1000),
+    ["Magma Village"] = Vector3.new(-900, 50, 2000),
+    ["Fountain City"] = Vector3.new(2300, 50, 800)
+}
 
 local function CreateESP(object, color, labelText)
     if not object or ESPObjects[object] then return end
@@ -112,23 +128,16 @@ local function UpdateESP()
             end
             IslandMarkers = {}
 
-            local islandPositions = {
-                ["Starter Island"] = Vector3.new(-500, 50, 200),
-                ["Marine Fortress"] = Vector3.new(-1600, 50, 800),
-                ["Jungle"] = Vector3.new(-1100, 30, -500),
-                ["Sky Island"] = Vector3.new(0, 500, 0)
-            }
-
-            for island, pos in pairs(islandPositions) do
+            for island, pos in pairs(FirstSeaIslands) do
                 local marker = Instance.new("Part")
                 marker.Size = Vector3.new(5, 5, 5)
                 marker.Position = pos
                 marker.Anchored = true
                 marker.Transparency = 1
                 marker.Parent = game.Workspace
-
+                
                 table.insert(IslandMarkers, marker)
-                CreateESP(marker, Color3.fromRGB(0, 0, 255), "🏝 " .. island)
+                CreateESP(marker, Color3.fromRGB(255, 255, 255), "🏝 " .. island)
             end
         end
     end
