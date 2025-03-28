@@ -65,18 +65,31 @@ local function CreateESP(object, color, labelText)
     ESPObjects[object] = billboard
 end
 
+-- Function to clear all ESP objects properly
+local function ClearAllESP()
+    for obj, esp in pairs(ESPObjects) do
+        if esp then
+            esp:Destroy()
+        end
+    end
+    ESPObjects = {} -- Reset table to prevent reusing old objects
+
+    -- Clear Island Markers too
+    for _, marker in pairs(IslandMarkers) do
+        if marker then
+            marker:Destroy()
+        end
+    end
+    IslandMarkers = {} -- Reset island markers
+end
+
 -- Function to update ESP dynamically
 local function UpdateESP()
     while ESPEnabled.Player or ESPEnabled.DevilFruit or ESPEnabled.Berry or ESPEnabled.Flower or ESPEnabled.Island do
         task.wait(2)
 
-        -- Clear old ESP markers
-        for obj, esp in pairs(ESPObjects) do
-            if obj.Parent == nil then
-                esp:Destroy()
-                ESPObjects[obj] = nil
-            end
-        end
+        -- Fix: Clear Old ESPs Before Updating
+        ClearAllESP()
 
         local playerRoot = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         
@@ -101,8 +114,7 @@ local function UpdateESP()
             for _, fruit in pairs(game.Workspace:GetChildren()) do
                 if fruit:IsA("Model") and fruit:FindFirstChild("Handle") and fruit.Name:lower():find("fruit") then
                     local distance = math.floor((playerRoot.Position - fruit.Handle.Position).Magnitude)
-                    local fruitName = fruit.Name
-                    CreateESP(fruit.Handle, Color3.fromRGB(255, 165, 0), string.format("🍏 %s\nDist: %d", fruitName, distance))
+                    CreateESP(fruit.Handle, Color3.fromRGB(255, 255, 255), string.format("🍏 %s\nDist: %d", fruit.Name, distance))
                 end
             end
         end
@@ -112,8 +124,7 @@ local function UpdateESP()
             for _, berry in pairs(game.Workspace:GetChildren()) do
                 if berry:IsA("Model") and berry.PrimaryPart then
                     local distance = math.floor((playerRoot.Position - berry.PrimaryPart.Position).Magnitude)
-                    local berryName = berry.Name
-                    CreateESP(berry.PrimaryPart, Color3.fromRGB(0, 255, 0), string.format("💰 %s\nDist: %d", berryName, distance))
+                    CreateESP(berry.PrimaryPart, Color3.fromRGB(255, 255, 255), string.format("💰 %s\nDist: %d", berry.Name, distance))
                 end
             end
         end
@@ -123,19 +134,13 @@ local function UpdateESP()
             for _, flower in pairs(game.Workspace:GetChildren()) do
                 if flower:IsA("Model") and flower.PrimaryPart then
                     local distance = math.floor((playerRoot.Position - flower.PrimaryPart.Position).Magnitude)
-                    local flowerName = flower.Name
-                    CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 0, 255), string.format("🌸 %s\nDist: %d", flowerName, distance))
+                    CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 255, 255), string.format("🌸 %s\nDist: %d", flower.Name, distance))
                 end
             end
         end
 
         -- Island ESP (Now shows name & distance)
         if ESPEnabled.Island then
-            for _, marker in pairs(IslandMarkers) do
-                marker:Destroy()
-            end
-            IslandMarkers = {}
-
             for island, pos in pairs(FirstSeaIslands) do
                 local distance = math.floor((playerRoot.Position - pos).Magnitude)
 
