@@ -5,9 +5,9 @@ local Window = Rayfield:CreateWindow({
     LoadingTitle = "Blox Fruits GUI",
     LoadingSubtitle = "by !..Ricky",
     ConfigurationSaving = {
-        Enabled = true, -- ✅ Configuration Saving Enabled
-        FolderName = "BloxFruitsGUI", -- Folder where settings are saved
-        FileName = "Config" -- File where settings are saved
+        Enabled = true,
+        FolderName = "BloxFruitsGUI",
+        FileName = "Config"
     },
     KeySystem = false
 })
@@ -25,11 +25,9 @@ local ESPEnabled = {
 }
 
 local ESPObjects = {}
-
--- Add cleanup for Island ESP markers
 local IslandMarkers = {}
+local ESPLoopRunning = false -- Prevent multiple loops
 
--- Function to create ESP
 local function CreateESP(object, color, labelText)
     if not object or ESPObjects[object] then return end
 
@@ -51,14 +49,16 @@ local function CreateESP(object, color, labelText)
     ESPObjects[object] = billboard
 end
 
--- Function to update ESP
 local function UpdateESP()
-    while ESPEnabled.Player or ESPEnabled.DevilFruit or ESPEnabled.Berry or ESPEnabled.Flower or ESPEnabled.Island do
+    if ESPLoopRunning then return end
+    ESPLoopRunning = true
+
+    while next(ESPEnabled) do
         task.wait(2)
 
-        -- Clear existing ESP
+        -- Clear invalid ESP objects
         for obj, esp in pairs(ESPObjects) do
-            if obj.Parent == nil then
+            if not obj or not obj.Parent then
                 esp:Destroy()
                 ESPObjects[obj] = nil
             end
@@ -67,10 +67,13 @@ local function UpdateESP()
         -- Player ESP
         if ESPEnabled.Player then
             for _, player in pairs(game.Players:GetPlayers()) do
-                if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") then
+                if player ~= game.Players.LocalPlayer and player.Character then
+                    local hrp = player.Character:FindFirstChild("HumanoidRootPart")
                     local humanoid = player.Character:FindFirstChild("Humanoid")
-                    local distance = math.floor((game.Players.LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude)
-                    CreateESP(player.Character.HumanoidRootPart, Color3.fromRGB(255, 255, 255), string.format("%s\nHP: %d/%d\nDist: %d", player.Name, humanoid.Health, humanoid.MaxHealth, distance))
+                    if hrp and humanoid then
+                        local distance = math.floor((game.Players.LocalPlayer.Character.HumanoidRootPart.Position - hrp.Position).Magnitude)
+                        CreateESP(hrp, Color3.fromRGB(255, 255, 255), string.format("%s\nHP: %d/%d\nDist: %d", player.Name, humanoid.Health, humanoid.MaxHealth, distance))
+                    end
                 end
             end
         end
@@ -84,27 +87,32 @@ local function UpdateESP()
             end
         end
 
-        -- Berry ESP
+        -- Berry ESP (Fix: Check for PrimaryPart)
         if ESPEnabled.Berry then
             for _, berry in pairs(game.Workspace:GetChildren()) do
                 if berry:IsA("Model") and berry.Name:lower():find("berry") then
-                    CreateESP(berry.PrimaryPart, Color3.fromRGB(0, 255, 0), "💰 Berry")
+                    local primary = berry:FindFirstChild("PrimaryPart")
+                    if primary then
+                        CreateESP(primary, Color3.fromRGB(0, 255, 0), "💰 Berry")
+                    end
                 end
             end
         end
 
-        -- Flower ESP
+        -- Flower ESP (Fix: Check for PrimaryPart)
         if ESPEnabled.Flower then
             for _, flower in pairs(game.Workspace:GetChildren()) do
                 if flower:IsA("Model") and flower.Name:lower():find("flower") then
-                    CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 0, 255), "🌸 Flower")
+                    local primary = flower:FindFirstChild("PrimaryPart")
+                    if primary then
+                        CreateESP(primary, Color3.fromRGB(255, 0, 255), "🌸 Flower")
+                    end
                 end
             end
         end
 
-        -- Modified Island ESP section in UpdateESP function
+        -- Island ESP
         if ESPEnabled.Island then
-            -- Clear old markers
             for _, marker in pairs(IslandMarkers) do
                 marker:Destroy()
             end
@@ -124,26 +132,32 @@ local function UpdateESP()
                 marker.Anchored = true
                 marker.Transparency = 1
                 marker.Parent = game.Workspace
-                
+
                 table.insert(IslandMarkers, marker)
                 CreateESP(marker, Color3.fromRGB(0, 0, 255), "🏝 " .. island)
             end
         end
     end
+
+    ESPLoopRunning = false
 end
 
--- Function to enable/disable ESP
 local function ToggleESP(espType, enabled)
     ESPEnabled[espType] = enabled
     if enabled then
         UpdateESP()
     else
         for obj, esp in pairs(ESPObjects) do
-            if esp then
-                esp:Destroy()
-            end
+            if esp then esp:Destroy() end
         end
         ESPObjects = {}
+
+        if espType == "Island" then
+            for _, marker in pairs(IslandMarkers) do
+                marker:Destroy()
+            end
+            IslandMarkers = {}
+        end
     end
 end
 
@@ -153,39 +167,5 @@ ESPTab:CreateToggle({ Name = "Devil Fruit ESP", CurrentValue = false, Flag = "De
 ESPTab:CreateToggle({ Name = "Berry ESP", CurrentValue = false, Flag = "BerryESP", Callback = function(Value) ToggleESP("Berry", Value) end })
 ESPTab:CreateToggle({ Name = "Flower ESP", CurrentValue = false, Flag = "FlowerESP", Callback = function(Value) ToggleESP("Flower", Value) end })
 ESPTab:CreateToggle({ Name = "Island ESP", CurrentValue = false, Flag = "IslandESP", Callback = function(Value) ToggleESP("Island", Value) end })
-
--- Find Fruit Toggle
-local FindFruitEnabled = false
-
--- Function to continuously bring fruits to the player
-local function BringFruitsLoop()
-    while FindFruitEnabled do
-        local player = game.Players.LocalPlayer
-        local character = player.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            local rootPart = character:FindFirstChild("HumanoidRootPart")
-
-            for _, fruit in pairs(game.Workspace:GetChildren()) do
-                if fruit:IsA("Model") and fruit:FindFirstChild("Handle") and fruit.Name:lower():find("fruit") then
-                    fruit.Handle.CFrame = rootPart.CFrame + Vector3.new(0, 3, 0)
-                end
-            end
-        end
-        task.wait(1) -- Adjust the delay if needed
-    end
-end
-
--- Toggle Button for Find & Bring Fruits
-MiscTab:CreateToggle({
-    Name = "Find & Bring Fruits",
-    CurrentValue = false,
-    Flag = "FindFruitToggle",
-    Callback = function(Value)
-        FindFruitEnabled = Value
-        if Value then
-            BringFruitsLoop()
-        end
-    end
-})
 
 Rayfield:LoadConfiguration()
