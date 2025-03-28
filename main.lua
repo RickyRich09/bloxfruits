@@ -110,6 +110,29 @@ local FirstSeaIslands = {
     ["Fountain City"] = Vector3.new(5500, 5, 4500)
 }
 
+-- Function to teleport player
+local function TeleportToIsland(island)
+    local player = game.Players.LocalPlayer
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        if FirstSeaIslands[island] then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(FirstSeaIslands[island] + Vector3.new(0, 5, 0)) -- Teleports slightly above to avoid getting stuck
+        else
+            print("⚠ Island not found!")
+        end
+    end
+end
+
+-- Add dropdown to Misc Tab
+MiscTab:CreateDropdown({
+    Name = "Teleport to Island (First Sea)",
+    Options = table.keys(FirstSeaIslands),
+    CurrentOption = "Starter Island (Pirates)",
+    Flag = "TeleportIsland",
+    Callback = function(SelectedIsland)
+        TeleportToIsland(SelectedIsland)
+    end
+})
+
 local function CreateESP(object, color, labelText)
     if not object or ESPObjects[object] then return end
 
