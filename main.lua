@@ -5,6 +5,7 @@ local ValidKeys = {
 }
 
 local KeyEntered = false
+local Attempts = 0  -- Track the number of attempts
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -32,11 +33,21 @@ KeyTab:CreateInput({
             KeyWindow:Destroy()
             LoadMainScript()
         else
-            Rayfield:Notify({
-                Title = "Invalid Key",
-                Content = "The key you entered is incorrect!",
-                Duration = 3
-            })
+            Attempts = Attempts + 1
+            if Attempts >= 3 then
+                Rayfield:Notify({
+                    Title = "Access Denied",
+                    Content = "You have exceeded the maximum attempts. Please try again later.",
+                    Duration = 5
+                })
+                KeyWindow:Destroy()  -- Close the script
+            else
+                Rayfield:Notify({
+                    Title = "Invalid Key",
+                    Content = "The key you entered is incorrect! Attempt " .. Attempts .. " of 3.",
+                    Duration = 3
+                })
+            end
         end
     end
 })
