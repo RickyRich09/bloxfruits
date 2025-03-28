@@ -218,4 +218,65 @@ MiscTab:CreateToggle({
     end
 })
 
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+
+-- Function to get a list of available servers
+local function GetServerList()
+    local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+    local success, response = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet(url))
+    end)
+
+    if success and response and response.data then
+        return response.data
+    else
+        return nil
+    end
+end
+
+-- Function to hop to a random server
+local function ServerHop()
+    local servers = GetServerList()
+    if servers then
+        for _, server in pairs(servers) do
+            if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
+                return
+            end
+        end
+    end
+    print("⚠ No available servers found!")
+end
+
+-- Function to hop to a server with the lowest players
+local function ServerHopLowest()
+    local servers = GetServerList()
+    if servers then
+        table.sort(servers, function(a, b) return a.playing < b.playing end) -- Sort by lowest players
+        for _, server in pairs(servers) do
+            if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
+                return
+            end
+        end
+    end
+    print("⚠ No available low-player servers found!")
+end
+
+-- Add buttons to Settings Tab
+SettingsTab:CreateButton({
+    Name = "Server Hop",
+    Callback = function()
+        ServerHop()
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Server Hop (Lowest Players)",
+    Callback = function()
+        ServerHopLowest()
+    end
+})
+
 Rayfield:LoadConfiguration()
