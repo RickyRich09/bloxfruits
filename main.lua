@@ -182,7 +182,7 @@ ESPTab:CreateToggle({ Name = "Berry ESP", CurrentValue = false, Flag = "BerryESP
 ESPTab:CreateToggle({ Name = "Flower ESP", CurrentValue = false, Flag = "FlowerESP", Callback = function(Value) ToggleESP("Flower", Value) end })
 ESPTab:CreateToggle({ Name = "Island ESP", CurrentValue = false, Flag = "IslandESP", Callback = function(Value) ToggleESP("Island", Value) end })
 
--- Bring Devil Fruits Toggle
+-- Add Toggle to Misc Tab
 MiscTab:CreateToggle({
     Name = "Bring Devil Fruits",
     CurrentValue = false,
