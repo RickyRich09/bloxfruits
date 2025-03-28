@@ -136,20 +136,7 @@ local function UpdateESP()
             end
             IslandMarkers = {}
 
-            local islandPositions = {
-                ["Starter Island"] = Vector3.new(-500, 50, 200),
-                ["Marine Fortress"] = Vector3.new(-1600, 50, 800),
-                ["Jungle"] = Vector3.new(-1100, 30, -500),
-                ["Sky Island"] = Vector3.new(0, 500, 0),
-                ["Pirate Village"] = Vector3.new(-1000, 30, 1200),
-                ["Desert Island"] = Vector3.new(1500, 30, -500),
-                ["Frozen Village"] = Vector3.new(1200, 30, 800),
-                ["Underwater City"] = Vector3.new(2000, -200, 1500),
-                ["Magma Village"] = Vector3.new(-1500, 30, -1300),
-                ["Colosseum"] = Vector3.new(200, 30, -3000)
-            }
-
-            for island, pos in pairs(islandPositions) do
+            for island, pos in pairs(FirstSeaIslands) do
                 local distance = math.floor((playerRoot.Position - pos).Magnitude)
 
                 local marker = Instance.new("Part")
