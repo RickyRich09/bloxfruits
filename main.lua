@@ -261,7 +261,7 @@ local function ServerHopLowest()
             end
         end
     end
-    print("⚠ No available low-player servers found!")
+    print("⚠ No available low player servers found!")
 end
 
 -- Add buttons to Settings Tab
