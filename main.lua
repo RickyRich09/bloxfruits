@@ -5,7 +5,7 @@ local Window = Rayfield:CreateWindow({
     LoadingTitle = "Blox Fruits Script",
     LoadingSubtitle = "by !..Ricky",
     ConfigurationSaving = {
-        Enabled = false,
+        Enabled = true,
         FolderName = "BloxFruitsScript",
         FileName = "Config"
     },
@@ -319,3 +319,5 @@ SettingsTab:CreateButton({
         FruitServerHop()
     end
 })
+
+Rayfield:LoadConfiguration()
