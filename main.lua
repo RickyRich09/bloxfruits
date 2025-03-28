@@ -1,9 +1,9 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "Blox Fruits Script",
+    Name = "Blox Fruits Script (ONLY WORKING ON FIRST SEA)",
     LoadingTitle = "Blox Fruits Script",
-    LoadingSubtitle = "by !..Ricky",
+    LoadingSubtitle = "by artist.ricky (!..Ricky)",
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "BloxFruitsScript",
@@ -26,7 +26,7 @@ local ESPEnabled = {
 
 local ESPObjects = {}
 local IslandMarkers = {}
-local ESPLoopRunning = false -- Prevent multiple loops
+local ESPLoopRunning = false
 
 -- First Sea Island Positions
 local FirstSeaIslands = {
@@ -44,62 +44,6 @@ local FirstSeaIslands = {
     ["Underwater City"] = Vector3.new(61164, -1000, 1819),
     ["Fountain City"] = Vector3.new(5500, 5, 4500)
 }
-
--- Function to hop to a new server
-local function HopToServer()
-    local TeleportService = game:GetService("TeleportService")
-    local PlaceId = game.PlaceId
-    local AllServers = {}  -- Store all server ids to hop
-
-    local function GetServers()
-        local success, result = pcall(function()
-            return game:GetService("HttpService"):GetAsync("https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public")
-        end)
-
-        if success and result then
-            local servers = game:GetService("HttpService"):JSONDecode(result).data
-            for _, server in ipairs(servers) do
-                if server.id then
-                    table.insert(AllServers, server.id)
-                end
-            end
-        end
-    end
-
-    -- Get available servers
-    GetServers()
-
-    -- Hop to a random server
-    if #AllServers > 0 then
-        local selectedServer = AllServers[math.random(1, #AllServers)]
-        TeleportService:TeleportToPlaceInstance(PlaceId, selectedServer)
-    else
-        print("⚠ No servers found to hop to!")
-    end
-end
-
--- Function to hop to a new server after fruit detection
-local function FruitServerHop()
-    -- Wait until fruits are detected (or any event is triggered to check for fruits)
-    while true do
-        local fruitsFound = false
-        for _, fruit in pairs(game.Workspace:GetChildren()) do
-            if fruit:IsA("Model") and fruit.Name:lower():find("fruit") then
-                fruitsFound = true
-                break
-            end
-        end
-
-        -- If fruits are found, hop to a new server
-        if fruitsFound then
-            print("Fruit found! Hopping to a new server...")
-            HopToServer()
-            break
-        end
-
-        task.wait(5)  -- Check for fruits every 5 seconds
-    end
-end
 
 local function CreateESP(object, color, labelText)
     if not object or ESPObjects[object] then return end
@@ -129,7 +73,7 @@ local function ClearAllESP()
             esp:Destroy()
         end
     end
-    ESPObjects = {} -- Reset table to prevent reusing old objects
+    ESPObjects = {}
 
     -- Clear Island Markers too
     for _, marker in pairs(IslandMarkers) do
@@ -137,7 +81,7 @@ local function ClearAllESP()
             marker:Destroy()
         end
     end
-    IslandMarkers = {} -- Reset island markers
+    IslandMarkers = {}
 end
 
 -- Function to update ESP dynamically
@@ -241,6 +185,26 @@ ESPTab:CreateToggle({ Name = "Berry ESP", CurrentValue = false, Flag = "BerryESP
 ESPTab:CreateToggle({ Name = "Flower ESP", CurrentValue = false, Flag = "FlowerESP", Callback = function(Value) ToggleESP("Flower", Value) end })
 ESPTab:CreateToggle({ Name = "Island ESP", CurrentValue = false, Flag = "IslandESP", Callback = function(Value) ToggleESP("Island", Value) end })
 
+-- Function to bring Devil Fruits
+local BringDevilFruitsEnabled = false
+
+local function BringDevilFruits()
+    while BringDevilFruitsEnabled do
+        local player = game.Players.LocalPlayer
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            local rootPart = character.HumanoidRootPart
+
+            for _, fruit in pairs(game.Workspace:GetChildren()) do
+                if fruit:IsA("Model") and fruit:FindFirstChild("Handle") and fruit.Name:lower():find("fruit") then
+                    fruit.Handle.CFrame = rootPart.CFrame + Vector3.new(0, 3, 0)
+                end
+            end
+        end
+        task.wait(1)
+    end
+end
+
 -- Add Toggle to Misc Tab
 MiscTab:CreateToggle({
     Name = "Bring Devil Fruits",
@@ -254,69 +218,64 @@ MiscTab:CreateToggle({
     end
 })
 
--- Island dropdown setup
-local IslandsList = {}
-for island, _ in pairs(FirstSeaIslands) do
-    table.insert(IslandsList, island)
-end
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
 
--- Function to teleport to selected island
-local function TeleportToIsland(islandName)
-    local targetPosition = FirstSeaIslands[islandName]
-    if targetPosition then
-        local player = game.Players.LocalPlayer
-        local character = player.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            -- Teleport player to the island's position
-            character.HumanoidRootPart.CFrame = CFrame.new(targetPosition)
-            print("Teleporting to " .. islandName)
-        else
-            print("⚠ Unable to teleport. Character not found!")
-        end
+-- Function to get a list of available servers
+local function GetServerList()
+    local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+    local success, response = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet(url))
+    end)
+
+    if success and response and response.data then
+        return response.data
     else
-        print("⚠ Island not found!")
+        return nil
     end
 end
 
--- Create Dropdown and Button for Island Teleportation in Misc Tab
-MiscTab:CreateDropdown({
-    Name = "Select Island",
-    Options = IslandsList,
-    CurrentOption = "Starter Island (Pirates)",  -- Default option
-    Flag = "IslandSelection",
-    Callback = function(selectedIsland)
-        print("Selected Island: " .. selectedIsland)
-        -- Teleport to the selected island
-        TeleportToIsland(selectedIsland)
-    end
-})
-
-MiscTab:CreateButton({
-    Name = "Teleport to Selected Island",
-    Callback = function()
-        local selectedIsland = Rayfield:GetOption("IslandSelection")
-        if selectedIsland then
-            TeleportToIsland(selectedIsland)
-        else
-            print("⚠ Please select an island from the dropdown!")
+-- Function to hop to a random server
+local function ServerHop()
+    local servers = GetServerList()
+    if servers then
+        for _, server in pairs(servers) do
+            if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
+                return
+            end
         end
     end
-})
+    print("⚠ No available servers found!")
+end
 
--- Add server hop features in Misc tab
+-- Function to hop to a server with the lowest players
+local function ServerHopLowest()
+    local servers = GetServerList()
+    if servers then
+        table.sort(servers, function(a, b) return a.playing < b.playing end) -- Sort by lowest players
+        for _, server in pairs(servers) do
+            if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
+                return
+            end
+        end
+    end
+    print("⚠ No available low-player servers found!")
+end
+
+-- Add buttons to Settings Tab
 SettingsTab:CreateButton({
-    Name = "Normal Server Hop",
+    Name = "Server Hop",
     Callback = function()
-        print("Hopping to a new server...")
-        HopToServer()
+        ServerHop()
     end
 })
 
 SettingsTab:CreateButton({
-    Name = "Fruit Server Hop",
+    Name = "Server Hop (Low Players)",
     Callback = function()
-        print("Starting Fruit Server Hop...")
-        FruitServerHop()
+        ServerHopLowest()
     end
 })
 
