@@ -1,7 +1,7 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "Blox Fruits Script (ONLY WORKING ON FIRST SEA)",
+    Name = "Blox Fruits Script",
     LoadingTitle = "Blox Fruits Script",
     LoadingSubtitle = "by artist.ricky (!..Ricky)",
     ConfigurationSaving = {
@@ -29,23 +29,53 @@ local ESPObjects = {}
 local IslandMarkers = {}
 local ESPLoopRunning = false
 
--- First Sea Island Positions
-local FirstSeaIslands = {
-    ["Starter Island (Pirates)"] = Vector3.new(-1149, 5, 3826),
-    ["Starter Island (Marines)"] = Vector3.new(-1123, 5, 3855),
-    ["Jungle"] = Vector3.new(-1339, 11, 354),
-    ["Pirate Village"] = Vector3.new(-1140, 5, 1325),
-    ["Desert"] = Vector3.new(978, 13, 4310),
-    ["Frozen Village"] = Vector3.new(1214, 7, -1210),
-    ["Marine Fortress"] = Vector3.new(-4550, 210, 4190),
-    ["Skylands"] = Vector3.new(-4850, 900, -250),
-    ["Prison"] = Vector3.new(4850, 5, 790),
-    ["Colosseum"] = Vector3.new(-1425, 7, -3015),
-    ["Magma Village"] = Vector3.new(-5230, 6, 1300),
-    ["Underwater City"] = Vector3.new(61164, -1000, 1819),
-    ["Fountain City"] = Vector3.new(5500, 5, 4500),
-    ["Middle Town"] = Vector3.new(1200, 10, 3800)
+-- Island Positions (First Sea & Second Sea)
+local IslandLocations = {
+    ["First Sea"] = {
+        ["Starter Island (Pirates)"] = Vector3.new(-1149, 5, 3826),
+        ["Starter Island (Marines)"] = Vector3.new(-1123, 5, 3855),
+        ["Jungle"] = Vector3.new(-1339, 11, 354),
+        ["Pirate Village"] = Vector3.new(-1140, 5, 1325),
+        ["Desert"] = Vector3.new(978, 13, 4310),
+        ["Frozen Village"] = Vector3.new(1214, 7, -1210),
+        ["Marine Fortress"] = Vector3.new(-4550, 210, 4190),
+        ["Skylands"] = Vector3.new(-4850, 900, -250),
+        ["Prison"] = Vector3.new(4850, 5, 790),
+        ["Colosseum"] = Vector3.new(-1425, 7, -3015),
+        ["Magma Village"] = Vector3.new(-5230, 6, 1300),
+        ["Underwater City"] = Vector3.new(61164, -1000, 1819),
+        ["Fountain City"] = Vector3.new(5500, 5, 4500),
+        ["Middle Town"] = Vector3.new(1200, 10, 3800)
+    },
+    ["Second Sea"] = {
+        ["Kingdom of Rose"] = Vector3.new(-400, 5, 200),
+        ["Cafe"] = Vector3.new(-500, 5, 300),
+        ["Mansion"] = Vector3.new(-600, 5, 400),
+        ["Snow Mountain"] = Vector3.new(-700, 5, 500),
+        ["Hot and Cold"] = Vector3.new(-800, 5, 600),
+        ["Factory"] = Vector3.new(-900, 5, 700),
+        ["Green Zone"] = Vector3.new(-1000, 5, 800),
+        ["Graveyard"] = Vector3.new(-1100, 5, 900),
+        ["Dark Arena"] = Vector3.new(-1200, 5, 1000)
+    }
 }
+
+--- Check if Player is in First or Second Sea
+local function GetCurrentSea()
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character then return "First Sea" end -- Default to First Sea if character not loaded
+    
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return "First Sea" end
+    
+    -- Check if player is in Second Sea (approximate Y-axis check)
+    if rootPart.Position.Y > 1000 then
+        return "Second Sea"
+    else
+        return "First Sea"
+    end
+end
 
 --- ESP Creation & Management
 local function CreateESP(object, color, labelText)
@@ -112,7 +142,7 @@ local function UpdateESP()
         for _, fruit in ipairs(game.Workspace:GetChildren()) do
             if fruit:IsA("Model") and fruit:FindFirstChild("Handle") and fruit.Name:lower():find("fruit") then
                 local distance = math.floor((rootPart.Position - fruit.Handle.Position).Magnitude)
-                CreateESP(fruit.Handle, Color3.fromRGB(255, 255, 255), string.format("🍏 %s\nDist: %d", fruit.Name, distance))
+                CreateESP(fruit.Handle, Color3.fromRGB(255, 0, 0), string.format("🍏 %s\nDist: %d", fruit.Name, distance))
             end
         end
     end
@@ -122,7 +152,7 @@ local function UpdateESP()
         for _, berry in ipairs(game.Workspace:GetChildren()) do
             if berry:IsA("Model") and berry.PrimaryPart and berry.Name:lower():find("berry") then
                 local distance = math.floor((rootPart.Position - berry.PrimaryPart.Position).Magnitude)
-                CreateESP(berry.PrimaryPart, Color3.fromRGB(255, 255, 255), string.format("💰 %s\nDist: %d", berry.Name, distance))
+                CreateESP(berry.PrimaryPart, Color3.fromRGB(0, 255, 0), string.format("💰 %s\nDist: %d", berry.Name, distance))
             end
         end
     end
@@ -132,14 +162,15 @@ local function UpdateESP()
         for _, flower in ipairs(game.Workspace:GetChildren()) do
             if flower:IsA("Model") and flower.PrimaryPart and flower.Name:lower():find("flower") then
                 local distance = math.floor((rootPart.Position - flower.PrimaryPart.Position).Magnitude)
-                CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 255, 255), string.format("🌸 %s\nDist: %d", flower.Name, distance))
+                CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 0, 255), string.format("🌸 %s\nDist: %d", flower.Name, distance))
             end
         end
     end
 
-    -- Island ESP
+    -- Island ESP (Dynamic Sea Detection)
     if ESPEnabled.Island then
-        for islandName, islandPos in pairs(FirstSeaIslands) do
+        local currentSea = GetCurrentSea()
+        for islandName, islandPos in pairs(IslandLocations[currentSea]) do
             local distance = math.floor((rootPart.Position - islandPos).Magnitude)
             local marker = Instance.new("Part")
             marker.Size = Vector3.new(5, 5, 5)
@@ -149,7 +180,7 @@ local function UpdateESP()
             marker.CanCollide = false
             marker.Parent = game.Workspace
             table.insert(IslandMarkers, marker)
-            CreateESP(marker, Color3.fromRGB(255, 255, 255), string.format("🏝 %s\nDist: %d", islandName, distance))
+            CreateESP(marker, Color3.fromRGB(0, 255, 255), string.format("🏝 %s\nDist: %d", islandName, distance))
         end
     end
 end
