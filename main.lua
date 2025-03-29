@@ -16,6 +16,7 @@ local ESPTab = Window:CreateTab("ESP", 4483362458)
 local MiscTab = Window:CreateTab("Misc", 4483362458)
 local SettingsTab = Window:CreateTab("Settings", 4483362458)
 
+-- ESP State Management
 local ESPEnabled = {
     Player = false,
     DevilFruit = false,
@@ -46,6 +47,7 @@ local FirstSeaIslands = {
     ["Middle Town"] = Vector3.new(1200, 10, 3800)
 }
 
+--- ESP Creation & Management
 local function CreateESP(object, color, labelText)
     if not object or ESPObjects[object] then return end
 
@@ -67,136 +69,134 @@ local function CreateESP(object, color, labelText)
     ESPObjects[object] = billboard
 end
 
--- Function to clear all ESP objects properly
+--- Clear All ESP Objects
 local function ClearAllESP()
     for obj, esp in pairs(ESPObjects) do
-        if esp then
-            esp:Destroy()
-        end
+        if esp then esp:Destroy() end
     end
     ESPObjects = {}
 
-    -- Clear Island Markers too
+    -- Clear Island Markers
     for _, marker in pairs(IslandMarkers) do
-        if marker then
-            marker:Destroy()
-        end
+        if marker then marker:Destroy() end
     end
     IslandMarkers = {}
 end
 
--- Function to update ESP dynamically
+--- Main ESP Update Loop
 local function UpdateESP()
-    while ESPEnabled.Player or ESPEnabled.DevilFruit or ESPEnabled.Berry or ESPEnabled.Flower or ESPEnabled.Island do
-        task.wait(2)
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if not character then return end
 
-        -- Fix: Clear Old ESPs Before Updating
-        ClearAllESP()
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
 
-        local playerRoot = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        
-        -- Player ESP (Now updates health correctly)
-        if ESPEnabled.Player then
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") then
-                    local humanoid = player.Character:FindFirstChild("Humanoid")
-                    local distance = math.floor((playerRoot.Position - player.Character.HumanoidRootPart.Position).Magnitude)
-
-                    if not ESPObjects[player.Character.HumanoidRootPart] then
-                        CreateESP(player.Character.HumanoidRootPart, Color3.fromRGB(255, 255, 255), "")
-                    end
-
-                    ESPObjects[player.Character.HumanoidRootPart].TextLabel.Text = string.format("%s\nHP: %d/%d\nDist: %d", player.Name, humanoid.Health, humanoid.MaxHealth, distance)
+    -- Player ESP
+    if ESPEnabled.Player then
+        for _, targetPlayer in ipairs(game.Players:GetPlayers()) do
+            if targetPlayer ~= player and targetPlayer.Character then
+                local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+                local humanoid = targetPlayer.Character:FindFirstChild("Humanoid")
+                if targetRoot and humanoid then
+                    local distance = math.floor((rootPart.Position - targetRoot.Position).Magnitude)
+                    CreateESP(targetRoot, Color3.fromRGB(255, 255, 255), 
+                        string.format("%s\nHP: %d/%d\nDist: %d", targetPlayer.Name, humanoid.Health, humanoid.MaxHealth, distance))
                 end
             end
         end
+    end
 
-        -- Devil Fruit ESP (Now shows name & distance)
-        if ESPEnabled.DevilFruit then
-            for _, fruit in pairs(game.Workspace:GetChildren()) do
-                if fruit:IsA("Model") and fruit:FindFirstChild("Handle") and fruit.Name:lower():find("fruit") then
-                    local distance = math.floor((playerRoot.Position - fruit.Handle.Position).Magnitude)
-                    CreateESP(fruit.Handle, Color3.fromRGB(255, 255, 255), string.format("🍏 %s\nDist: %d", fruit.Name, distance))
-                end
+    -- Devil Fruit ESP
+    if ESPEnabled.DevilFruit then
+        for _, fruit in ipairs(game.Workspace:GetChildren()) do
+            if fruit:IsA("Model") and fruit:FindFirstChild("Handle") and fruit.Name:lower():find("fruit") then
+                local distance = math.floor((rootPart.Position - fruit.Handle.Position).Magnitude)
+                CreateESP(fruit.Handle, Color3.fromRGB(255, 0, 0), string.format("🍏 %s\nDist: %d", fruit.Name, distance))
             end
         end
+    end
 
-        -- Berry ESP (Now shows name & distance)
-        if ESPEnabled.Berry then
-            for _, berry in pairs(game.Workspace:GetChildren()) do
-                if berry:IsA("Model") and berry.PrimaryPart then
-                    local distance = math.floor((playerRoot.Position - berry.PrimaryPart.Position).Magnitude)
-                    CreateESP(berry.PrimaryPart, Color3.fromRGB(255, 255, 255), string.format("💰 %s\nDist: %d", berry.Name, distance))
-                end
+    -- Berry ESP
+    if ESPEnabled.Berry then
+        for _, berry in ipairs(game.Workspace:GetChildren()) do
+            if berry:IsA("Model") and berry.PrimaryPart and berry.Name:lower():find("berry") then
+                local distance = math.floor((rootPart.Position - berry.PrimaryPart.Position).Magnitude)
+                CreateESP(berry.PrimaryPart, Color3.fromRGB(0, 255, 0), string.format("💰 %s\nDist: %d", berry.Name, distance))
             end
         end
+    end
 
-        -- Flower ESP (Now shows name & distance)
-        if ESPEnabled.Flower then
-            for _, flower in pairs(game.Workspace:GetChildren()) do
-                if flower:IsA("Model") and flower.PrimaryPart then
-                    local distance = math.floor((playerRoot.Position - flower.PrimaryPart.Position).Magnitude)
-                    CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 255, 255), string.format("🌸 %s\nDist: %d", flower.Name, distance))
-                end
+    -- Flower ESP
+    if ESPEnabled.Flower then
+        for _, flower in ipairs(game.Workspace:GetChildren()) do
+            if flower:IsA("Model") and flower.PrimaryPart and flower.Name:lower():find("flower") then
+                local distance = math.floor((rootPart.Position - flower.PrimaryPart.Position).Magnitude)
+                CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 0, 255), string.format("🌸 %s\nDist: %d", flower.Name, distance))
             end
         end
+    end
 
-        -- Island ESP (Now shows name & distance)
-        if ESPEnabled.Island then
-            for island, pos in pairs(FirstSeaIslands) do
-                local distance = math.floor((playerRoot.Position - pos).Magnitude)
-
-                local marker = Instance.new("Part")
-                marker.Size = Vector3.new(5, 5, 5)
-                marker.Position = pos
-                marker.Anchored = true
-                marker.Transparency = 1
-                marker.Parent = game.Workspace
-                
-                table.insert(IslandMarkers, marker)
-                CreateESP(marker, Color3.fromRGB(255, 255, 255), string.format("🏝 %s\nDist: %d", island, distance))
-            end
+    -- Island ESP
+    if ESPEnabled.Island then
+        for islandName, islandPos in pairs(FirstSeaIslands) do
+            local distance = math.floor((rootPart.Position - islandPos).Magnitude)
+            local marker = Instance.new("Part")
+            marker.Size = Vector3.new(5, 5, 5)
+            marker.Position = islandPos
+            marker.Anchored = true
+            marker.Transparency = 1
+            marker.CanCollide = false
+            marker.Parent = game.Workspace
+            table.insert(IslandMarkers, marker)
+            CreateESP(marker, Color3.fromRGB(0, 255, 255), string.format("🏝 %s\nDist: %d", islandName, distance))
         end
     end
 end
 
+--- Toggle ESP System
 local function ToggleESP(espType, enabled)
     ESPEnabled[espType] = enabled
-    if enabled then
-        UpdateESP()
-    else
-        for obj, esp in pairs(ESPObjects) do
-            if esp then esp:Destroy() end
-        end
-        ESPObjects = {}
 
-        if espType == "Island" then
-            for _, marker in pairs(IslandMarkers) do
-                marker:Destroy()
-            end
-            IslandMarkers = {}
+    -- Start/Stop ESP Loop
+    local anyESPEnabled = false
+    for _, v in pairs(ESPEnabled) do
+        if v then
+            anyESPEnabled = true
+            break
         end
+    end
+
+    if anyESPEnabled and not ESPLoopRunning then
+        ESPLoopRunning = true
+        coroutine.wrap(function()
+            while ESPLoopRunning do
+                UpdateESP()
+                task.wait(2)
+            end
+            ClearAllESP() -- Cleanup when loop stops
+        end)()
+    elseif not anyESPEnabled then
+        ESPLoopRunning = false
     end
 end
 
--- ESP Toggles
+--- ESP Toggles
 ESPTab:CreateToggle({ Name = "Player ESP", CurrentValue = false, Flag = "PlayerESP", Callback = function(Value) ToggleESP("Player", Value) end })
 ESPTab:CreateToggle({ Name = "Devil Fruit ESP", CurrentValue = false, Flag = "DevilFruitESP", Callback = function(Value) ToggleESP("DevilFruit", Value) end })
 ESPTab:CreateToggle({ Name = "Berry ESP", CurrentValue = false, Flag = "BerryESP", Callback = function(Value) ToggleESP("Berry", Value) end })
 ESPTab:CreateToggle({ Name = "Flower ESP", CurrentValue = false, Flag = "FlowerESP", Callback = function(Value) ToggleESP("Flower", Value) end })
 ESPTab:CreateToggle({ Name = "Island ESP", CurrentValue = false, Flag = "IslandESP", Callback = function(Value) ToggleESP("Island", Value) end })
 
--- Function to bring Devil Fruits
+--- Bring Devil Fruits (Misc)
 local BringDevilFruitsEnabled = false
-
 local function BringDevilFruits()
     while BringDevilFruitsEnabled do
         local player = game.Players.LocalPlayer
         local character = player.Character
         if character and character:FindFirstChild("HumanoidRootPart") then
             local rootPart = character.HumanoidRootPart
-
-            for _, fruit in pairs(game.Workspace:GetChildren()) do
+            for _, fruit in ipairs(game.Workspace:GetChildren()) do
                 if fruit:IsA("Model") and fruit:FindFirstChild("Handle") and fruit.Name:lower():find("fruit") then
                     fruit.Handle.CFrame = rootPart.CFrame + Vector3.new(0, 3, 0)
                 end
@@ -206,7 +206,6 @@ local function BringDevilFruits()
     end
 end
 
--- Add Toggle to Misc Tab
 MiscTab:CreateToggle({
     Name = "Bring Devil Fruits",
     CurrentValue = false,
@@ -214,70 +213,39 @@ MiscTab:CreateToggle({
     Callback = function(Value)
         BringDevilFruitsEnabled = Value
         if Value then
-            BringDevilFruits()
+            coroutine.wrap(BringDevilFruits)()
         end
     end
 })
 
+--- Server Hopping (Settings)
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 
--- Function to get a list of available servers
 local function GetServerList()
     local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
     local success, response = pcall(function()
         return HttpService:JSONDecode(game:HttpGet(url))
     end)
-
-    if success and response and response.data then
-        return response.data
-    else
-        return nil
-    end
+    return success and response.data or nil
 end
 
--- Function to hop to a random server
 local function ServerHop()
     local servers = GetServerList()
     if servers then
-        for _, server in pairs(servers) do
+        for _, server in ipairs(servers) do
             if server.playing < server.maxPlayers and server.id ~= game.JobId then
                 TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
                 return
             end
         end
     end
-    print("⚠ No available servers found!")
+    Rayfield:Notify("⚠ No available servers found!")
 end
 
--- Function to hop to a server with the lowest players
-local function ServerHopLowest()
-    local servers = GetServerList()
-    if servers then
-        table.sort(servers, function(a, b) return a.playing < b.playing end) -- Sort by lowest players
-        for _, server in pairs(servers) do
-            if server.playing < server.maxPlayers and server.id ~= game.JobId then
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
-                return
-            end
-        end
-    end
-    print("⚠ No available low player servers found!")
-end
-
--- Add buttons to Settings Tab
 SettingsTab:CreateButton({
     Name = "Server Hop",
-    Callback = function()
-        ServerHop()
-    end
-})
-
-SettingsTab:CreateButton({
-    Name = "Server Hop (Low Players)",
-    Callback = function()
-        ServerHopLowest()
-    end
+    Callback = ServerHop
 })
 
 Rayfield:LoadConfiguration()
