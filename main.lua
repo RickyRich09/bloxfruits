@@ -1,7 +1,8 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+-- Create window with temporary title (will update automatically)
 local Window = Rayfield:CreateWindow({
-    Name = "Blox Fruits Script",
+    Name = "Blox Fruits Script (Detecting Sea...)",
     LoadingTitle = "Blox Fruits Script",
     LoadingSubtitle = "by artist.ricky (!..Ricky)",
     ConfigurationSaving = {
@@ -29,7 +30,7 @@ local ESPObjects = {}
 local IslandMarkers = {}
 local ESPLoopRunning = false
 
--- Island Positions (First Sea & Second Sea)
+-- Island Positions for Both Seas
 local IslandLocations = {
     ["First Sea"] = {
         ["Starter Island (Pirates)"] = Vector3.new(-1149, 5, 3826),
@@ -48,28 +49,28 @@ local IslandLocations = {
         ["Middle Town"] = Vector3.new(1200, 10, 3800)
     },
     ["Second Sea"] = {
-        ["Kingdom of Rose"] = Vector3.new(-400, 5, 200),
-        ["Cafe"] = Vector3.new(-500, 5, 300),
-        ["Mansion"] = Vector3.new(-600, 5, 400),
-        ["Snow Mountain"] = Vector3.new(-700, 5, 500),
-        ["Hot and Cold"] = Vector3.new(-800, 5, 600),
-        ["Factory"] = Vector3.new(-900, 5, 700),
-        ["Green Zone"] = Vector3.new(-1000, 5, 800),
-        ["Graveyard"] = Vector3.new(-1100, 5, 900),
-        ["Dark Arena"] = Vector3.new(-1200, 5, 1000)
+        ["Kingdom of Rose"] = Vector3.new(-3886, 5, 3037),
+        ["Cafe"] = Vector3.new(-3166, 5, 2967),
+        ["Mansion"] = Vector3.new(-2820, 5, 3066),
+        ["Snow Mountain"] = Vector3.new(-2723, 5, 3666),
+        ["Hot and Cold"] = Vector3.new(-1960, 5, 2830),
+        ["Factory"] = Vector3.new(-3499, 5, 2544),
+        ["Green Zone"] = Vector3.new(-2258, 5, 3216),
+        ["Graveyard"] = Vector3.new(-1759, 5, 1988),
+        ["Dark Arena"] = Vector3.new(-3760, 5, 2777)
     }
 }
 
---- Check if Player is in First or Second Sea
+--- Detect Current Sea
 local function GetCurrentSea()
     local player = game.Players.LocalPlayer
     local character = player.Character
-    if not character then return "First Sea" end -- Default to First Sea if character not loaded
+    if not character then return "First Sea" end
     
     local rootPart = character:FindFirstChild("HumanoidRootPart")
     if not rootPart then return "First Sea" end
     
-    -- Check if player is in Second Sea (approximate Y-axis check)
+    -- Second Sea typically has higher Y-values
     if rootPart.Position.Y > 1000 then
         return "Second Sea"
     else
@@ -77,7 +78,19 @@ local function GetCurrentSea()
     end
 end
 
---- ESP Creation & Management
+--- Update Window Title Based on Current Sea
+local function UpdateWindowTitle()
+    while true do
+        local currentSea = GetCurrentSea()
+        Window:SetWindowName("Blox Fruits Script ("..currentSea..")")
+        task.wait(5) -- Update every 5 seconds
+    end
+end
+
+-- Start the title updater
+coroutine.wrap(UpdateWindowTitle)()
+
+--- ESP Creation
 local function CreateESP(object, color, labelText)
     if not object or ESPObjects[object] then return end
 
@@ -99,21 +112,20 @@ local function CreateESP(object, color, labelText)
     ESPObjects[object] = billboard
 end
 
---- Clear All ESP Objects
+--- Clear All ESP
 local function ClearAllESP()
     for obj, esp in pairs(ESPObjects) do
         if esp then esp:Destroy() end
     end
     ESPObjects = {}
 
-    -- Clear Island Markers
     for _, marker in pairs(IslandMarkers) do
         if marker then marker:Destroy() end
     end
     IslandMarkers = {}
 end
 
---- Main ESP Update Loop
+--- Main ESP Update
 local function UpdateESP()
     local player = game.Players.LocalPlayer
     local character = player.Character
@@ -147,27 +159,7 @@ local function UpdateESP()
         end
     end
 
-    -- Berry ESP
-    if ESPEnabled.Berry then
-        for _, berry in ipairs(game.Workspace:GetChildren()) do
-            if berry:IsA("Model") and berry.PrimaryPart and berry.Name:lower():find("berry") then
-                local distance = math.floor((rootPart.Position - berry.PrimaryPart.Position).Magnitude)
-                CreateESP(berry.PrimaryPart, Color3.fromRGB(0, 255, 0), string.format("💰 %s\nDist: %d", berry.Name, distance))
-            end
-        end
-    end
-
-    -- Flower ESP
-    if ESPEnabled.Flower then
-        for _, flower in ipairs(game.Workspace:GetChildren()) do
-            if flower:IsA("Model") and flower.PrimaryPart and flower.Name:lower():find("flower") then
-                local distance = math.floor((rootPart.Position - flower.PrimaryPart.Position).Magnitude)
-                CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 0, 255), string.format("🌸 %s\nDist: %d", flower.Name, distance))
-            end
-        end
-    end
-
-    -- Island ESP (Dynamic Sea Detection)
+    -- Island ESP (Auto-detects sea)
     if ESPEnabled.Island then
         local currentSea = GetCurrentSea()
         for islandName, islandPos in pairs(IslandLocations[currentSea]) do
@@ -189,7 +181,6 @@ end
 local function ToggleESP(espType, enabled)
     ESPEnabled[espType] = enabled
 
-    -- Start/Stop ESP Loop
     local anyESPEnabled = false
     for _, v in pairs(ESPEnabled) do
         if v then
@@ -205,21 +196,19 @@ local function ToggleESP(espType, enabled)
                 UpdateESP()
                 task.wait(2)
             end
-            ClearAllESP() -- Cleanup when loop stops
+            ClearAllESP()
         end)()
     elseif not anyESPEnabled then
         ESPLoopRunning = false
     end
 end
 
---- ESP Toggles
+--- Create ESP Toggles
 ESPTab:CreateToggle({ Name = "Player ESP", CurrentValue = false, Flag = "PlayerESP", Callback = function(Value) ToggleESP("Player", Value) end })
 ESPTab:CreateToggle({ Name = "Devil Fruit ESP", CurrentValue = false, Flag = "DevilFruitESP", Callback = function(Value) ToggleESP("DevilFruit", Value) end })
-ESPTab:CreateToggle({ Name = "Berry ESP", CurrentValue = false, Flag = "BerryESP", Callback = function(Value) ToggleESP("Berry", Value) end })
-ESPTab:CreateToggle({ Name = "Flower ESP", CurrentValue = false, Flag = "FlowerESP", Callback = function(Value) ToggleESP("Flower", Value) end })
 ESPTab:CreateToggle({ Name = "Island ESP", CurrentValue = false, Flag = "IslandESP", Callback = function(Value) ToggleESP("Island", Value) end })
 
---- Bring Devil Fruits (Misc)
+--- Bring Devil Fruits
 local BringDevilFruitsEnabled = false
 local function BringDevilFruits()
     while BringDevilFruitsEnabled do
@@ -249,12 +238,12 @@ MiscTab:CreateToggle({
     end
 })
 
---- Server Hopping (Settings)
+--- Server Hop
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 
 local function GetServerList()
-    local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+    local url = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
     local success, response = pcall(function()
         return HttpService:JSONDecode(game:HttpGet(url))
     end)
