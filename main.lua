@@ -112,7 +112,7 @@ local function UpdateESP()
         for _, fruit in ipairs(game.Workspace:GetChildren()) do
             if fruit:IsA("Model") and fruit:FindFirstChild("Handle") and fruit.Name:lower():find("fruit") then
                 local distance = math.floor((rootPart.Position - fruit.Handle.Position).Magnitude)
-                CreateESP(fruit.Handle, Color3.fromRGB(255, 0, 0), string.format("🍏 %s\nDist: %d", fruit.Name, distance))
+                CreateESP(fruit.Handle, Color3.fromRGB(255, 255, 255), string.format("🍏 %s\nDist: %d", fruit.Name, distance))
             end
         end
     end
@@ -122,7 +122,7 @@ local function UpdateESP()
         for _, berry in ipairs(game.Workspace:GetChildren()) do
             if berry:IsA("Model") and berry.PrimaryPart and berry.Name:lower():find("berry") then
                 local distance = math.floor((rootPart.Position - berry.PrimaryPart.Position).Magnitude)
-                CreateESP(berry.PrimaryPart, Color3.fromRGB(0, 255, 0), string.format("💰 %s\nDist: %d", berry.Name, distance))
+                CreateESP(berry.PrimaryPart, Color3.fromRGB(255, 255, 255), string.format("💰 %s\nDist: %d", berry.Name, distance))
             end
         end
     end
@@ -132,7 +132,7 @@ local function UpdateESP()
         for _, flower in ipairs(game.Workspace:GetChildren()) do
             if flower:IsA("Model") and flower.PrimaryPart and flower.Name:lower():find("flower") then
                 local distance = math.floor((rootPart.Position - flower.PrimaryPart.Position).Magnitude)
-                CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 0, 255), string.format("🌸 %s\nDist: %d", flower.Name, distance))
+                CreateESP(flower.PrimaryPart, Color3.fromRGB(255, 255, 255), string.format("🌸 %s\nDist: %d", flower.Name, distance))
             end
         end
     end
@@ -149,7 +149,7 @@ local function UpdateESP()
             marker.CanCollide = false
             marker.Parent = game.Workspace
             table.insert(IslandMarkers, marker)
-            CreateESP(marker, Color3.fromRGB(0, 255, 255), string.format("🏝 %s\nDist: %d", islandName, distance))
+            CreateESP(marker, Color3.fromRGB(255, 255, 255), string.format("🏝 %s\nDist: %d", islandName, distance))
         end
     end
 end
