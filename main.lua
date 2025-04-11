@@ -1,5 +1,7 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+local Custom_Keys = {"KEY_ONE", "KEY_TWO", "KEY_THREE"} -- Replace with your actual keys
+
 local Window = Rayfield:CreateWindow({
 	Name = "Blox Fruits Script",
 	LoadingTitle = "Blox Fruits Script",
@@ -9,7 +11,14 @@ local Window = Rayfield:CreateWindow({
 		FolderName = "BloxFruitsScript",
 		FileName = "Config"
 	},
-	KeySystem = false
+	KeySystem = true,
+    KeySettings = {
+		Title = "Blox Fruits Script Key",
+		Subtitle = "Enter the key to unlock the features.",
+		Image = 4483362458, -- Optional image ID
+		Keys = Custom_Keys,
+        NoKeyError = "Invalid key!"
+	}
 })
 
 local ESPTab = Window:CreateTab("ESP", 4483362458)
